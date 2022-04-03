@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using OnlineLibrary.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,23 +18,18 @@ namespace OnlineLibrary.Controllers
         };
 
         private readonly ILogger<WeatherForecastController> _logger;
+        private readonly IBlobServices _blobServices;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IBlobServices blobServices)
         {
             _logger = logger;
+            _blobServices = blobServices;
         }
 
         [HttpGet]
-        public IEnumerable<WeatherForecast> Get()
+        public IEnumerable<string> GetBlobs()
         {
-            var rng = new Random();
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateTime.Now.AddDays(index),
-                TemperatureC = rng.Next(-20, 55),
-                Summary = Summaries[rng.Next(Summaries.Length)]
-            })
-            .ToArray();
+            return (IEnumerable<string>)_blobServices.GetBlobNameAsync();
         }
     }
 }
