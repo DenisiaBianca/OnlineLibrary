@@ -1,6 +1,11 @@
 ﻿using Azure.Storage.Blobs;
+using Microsoft.AspNetCore.Http;
 using OnlineLibrary.Models;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net.Mime;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace OnlineLibrary.Services
@@ -33,6 +38,19 @@ namespace OnlineLibrary.Services
             }
 
             return items;
+        }
+
+        public async Task UploadBlobAsync(IFormFile file)
+        {
+            var containerClient = _blobServiceClient.GetBlobContainerClient("covers");
+            var filename = Guid.NewGuid() + ".jpg";
+            var blobClient = containerClient.GetBlobClient(filename);
+
+            using (var stream = file.OpenReadStream())
+            {
+                await blobClient.UploadAsync(stream);
+            }
+
         }
     }
 }

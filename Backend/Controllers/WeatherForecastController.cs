@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OnlineLibrary.Services;
 using System;
@@ -29,7 +30,14 @@ namespace OnlineLibrary.Controllers
         [HttpGet]
         public IEnumerable<string> GetBlobs()
         {
-            return (IEnumerable<string>)_blobServices.GetBlobNameAsync();
+            return _blobServices.GetBlobNameAsync().Result;
+        }
+
+        [HttpPost("uploadFile")]
+        public async Task<IActionResult> UploadFile([FromForm] IFormFile file)
+        {
+            //await _blobServices.UploadBlobAsync(file);
+            return Ok();
         }
     }
 }
