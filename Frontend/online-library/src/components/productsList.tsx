@@ -1,11 +1,10 @@
 import React from 'react'
 import { makeStyles } from '@material-ui/core';
-import { Product } from '../interfaces/products';
-import Book from './products/book';
-import Magazine from './products/magazine';
+import { IProduct } from '../interfaces/products';
+import ProductCard from './productCard';
 
 interface IProps {
-    products: Product[];
+    products: IProduct[];
 }
 
 const useStyle = makeStyles(() => ({
@@ -23,9 +22,8 @@ const ProductsList: React.FC<IProps> = ({products}) => {
 
   return (
     <div>
-        <h4>List</h4>
-        {products.map((p) =>
-            (p.TypeId === 1 && <Book product={p}/>) || (p.TypeId === 2 && <Magazine/> )
+        {products.length > 0 && products.map((p) =>
+            <ProductCard product={p}/>
         )}
     </div>
   )

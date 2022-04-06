@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from 'axios'
+import { IFilter } from '../interfaces/products';
 
 const baseUrl = "https://localhost:44311/api/";
 
@@ -15,8 +16,20 @@ export const ApiServices = () => {
             });  
     }
 
+    async function getProducts(filter : IFilter){
+        return await axios
+            .post(baseUrl + "products/getProducts", filter)
+            .then((response: any) => {
+                return response.data;
+            })
+            .catch((error: any) => {
+                console.log(error);
+            });  
+    }
+
     return {
-        uploadImage
+        uploadImage,
+        getProducts
     };
 }
 
