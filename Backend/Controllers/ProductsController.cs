@@ -56,5 +56,12 @@ namespace OnlineLibrary.Controllers
 
             return Ok(products);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetCategories()
+        {
+            var categories = _dBContext.Categories;
+            return Ok(categories);
+        }
     }
 }

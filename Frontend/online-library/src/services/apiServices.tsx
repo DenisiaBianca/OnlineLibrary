@@ -27,9 +27,21 @@ export const ApiServices = () => {
             });  
     }
 
+    async function getCategories(){
+        return await axios
+            .get(baseUrl + "products/getCategories")
+            .then((response: any) => {
+                return response.data;
+            })
+            .catch((error: any) => {
+                console.log(error);
+            });  
+    }
+
     return {
         uploadImage,
-        getProducts
+        getProducts,
+        getCategories
     };
 }
 

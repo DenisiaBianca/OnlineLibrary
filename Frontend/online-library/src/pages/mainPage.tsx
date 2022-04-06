@@ -1,7 +1,4 @@
 import React, { useState } from 'react'
-import ImageUploader from 'react-images-upload';
-import ProductsList from '../components/productsList';
-import { IProduct } from '../interfaces/products';
 import ApiServices from '../services/apiServices';
 
 

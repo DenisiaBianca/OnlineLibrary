@@ -74,4 +74,10 @@ export interface IFilter {
     EndYear?: number;
 }
 
+export interface ICategory {
+    productTypeId : number;
+    name: string;
+    id: number;
+}
+
 

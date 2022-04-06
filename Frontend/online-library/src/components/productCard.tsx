@@ -14,7 +14,7 @@ const useStyle = makeStyles(() => ({
         padding: '0px 15px',
         alignItems: 'center',
         height: '250px',
-        width: '50vw',
+        width: '70%',
         margin: '20px',
         boxShadow: 'rgba(0, 0, 0, 0.2) 0px 3px 8px',
         '&:hover': {
@@ -22,10 +22,10 @@ const useStyle = makeStyles(() => ({
         },   
     },
     cover: {
-        height: '220px',
+        height: '200px',
     },
     details: {
-       width: "20vw",
+       width: "60%",
        height: '100%',
        textAlign: 'left',
        marginTop: '15px' 

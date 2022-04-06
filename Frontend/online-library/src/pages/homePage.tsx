@@ -1,12 +1,12 @@
 import { Button, Checkbox, FormControlLabel, makeStyles } from '@material-ui/core'
 import React, { useEffect, useState } from 'react'
 import headerImage from '../images/Picture10.png'
-import ProductsList from '../components/productsList'
 import { IFilter, IProduct } from '../interfaces/products'
 import Filters from '../components/filters'
 import ApiServices from '../services/apiServices';
 import MainPage from './mainPage'
 import AddProductModal from '../components/addProductModal'
+import ProductCard from '../components/productCard'
 
 const useStyle = makeStyles(() => ({
     header: {
@@ -109,7 +109,9 @@ export default function HomePage() {
                 </div>
                 <div className={classes.list}>
                     <Button className={classes.addProductButton} onClick={() => setOpenAddProductModal(true)}><b>+ Add New Product</b></Button>
-                    <ProductsList products={products}/>
+                    {products.length > 0 && products.map((p) =>
+                        <ProductCard product={p}/>
+                    )}
                 </div>
             </>) ||
             (selectedMenuItem === 2 && 
