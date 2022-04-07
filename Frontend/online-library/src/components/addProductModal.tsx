@@ -1,9 +1,9 @@
 
-import { makeStyles } from '@material-ui/core';
+import { Button, makeStyles } from '@material-ui/core';
 import { YearPicker } from '@mui/lab';
 import { FormControl, InputLabel, MenuItem, Select, Box, Modal, TextField } from '@mui/material';
 import React, { useEffect, useState } from 'react'
-import { ICategory, IProduct } from '../interfaces/products';
+import { ICategory, IProduct, ISaveProduct } from '../interfaces/products';
 import ApiServices from '../services/apiServices';
 
 interface IProps {
@@ -18,7 +18,7 @@ const useStyle = makeStyles(() => ({
         left: '50%',
         transform: 'translate(-50%, -50%)',
         width: '600px',
-        height: '500px',
+        height: 'auto',
         backgroundColor: 'white',
         boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px',
         textAlign: 'center',
@@ -31,17 +31,33 @@ const useStyle = makeStyles(() => ({
     },
     row: {
         display: 'flex',
-        justifyContent: 'center'
+        justifyContent: 'left',
+
+    },
+    buttons: {
+        margin: '60px 40px 10px 40px',
+        display: 'flex',
+        justifyContent: 'space-between',
+    },
+    cancelButton: {
+        backgroundColor: '#9a8c98',
+        width: '200px',
+        color: 'white'
+    },
+    saveButton: {
+        backgroundColor: '#6b705c',
+        width: '200px',
+        color: 'white'
     }
 }));
 
 const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
     const classes = useStyle();
-    const [form, setForm] = useState<IProduct>({});
-    const [cover, setCover] = useState<FileList | null>(null)
+    const [form, setForm] = useState<ISaveProduct>({});
     const [categories, setCategories] = useState<ICategory[]>([]);
     const [selectedCategories, setSelectedCategories] = useState([]);
-    const {getCategories} = ApiServices();
+    const [file, setFile] = useState<FormData | undefined>();
+    const {getCategories, saveProduct, uploadFileToStorage} = ApiServices();
     const years = [];
 
     for(var i = 2022; i >= 1900; i--)
@@ -51,7 +67,25 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
 
     function setFormData(field: string, data: number | string | boolean){
         setForm({...form, [field] : data});
-        console.log(form);
+    }
+
+    function setCover(files : FileList | null){
+        if(files && files[0]){
+            const covername = generateGUID() + ".jpg";
+            setFormData("cover", covername);
+
+            var fileToFormData = new FormData();
+            fileToFormData.append("file", files[0]);
+            setFile(fileToFormData);
+        }
+    }
+
+    function generateGUID() {
+        return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+            var r = (Math.random() * 16) | 0,
+              v = c == 'x' ? r : (r & 0x3) | 0x8;
+            return v.toString(16);
+          });
     }
 
     const getCategoriesData = async() => {
@@ -61,19 +95,21 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
     }
 
     const handleChange = (event: { target: { value: any; }; }) => {
-        const {
-          target: { value },
-        } = event;
-        setSelectedCategories(
-            // On autofill we get a stringified value.
-            typeof value === 'string' ? value.split(',') : value,
-          );
-      };
+        const { target: { value },} = event;
+        setSelectedCategories(typeof value === 'string' ? value.split(',') : value);
+        setForm({...form, categories : value});
+    };
+
+    function saveProductData()
+    {
+        console.log(form);
+        saveProduct(form);
+        uploadFileToStorage(file, form.cover);
+    }
     
     useEffect(() =>
     {
         getCategoriesData();
-
     },[])
 
 
@@ -106,7 +142,7 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
                             </Select>
                         </FormControl>
                         <TextField 
-                            sx={{ m: '1%', minWidth: '68%' }}
+                            sx={{ m: '1%', minWidth: '66%' }}
                             id="name"
                             label="Name"
                             value={form.name}
@@ -114,7 +150,7 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
                         />
                     </div>
                     <div className={classes.row}>
-                        <FormControl sx={{ m: '1%', minWidth: '49%' }}>
+                        <FormControl sx={{ m: '1%', minWidth: '48%' }}>
                             <InputLabel id="publish-date">Publish year</InputLabel>
                             <Select
                                 labelId="publish-date"
@@ -126,19 +162,19 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
                         </FormControl>
                         {(form.typeId === 1 || form.typeId === 2) && <>
                             <TextField 
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Publish House"
                                 value={form.publishHouse}
                                 onChange={(e) => setFormData("publishHouse", e.target.value)}/></>}
                         {form.typeId === 3 && <>
                             <TextField 
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Studio"
                                 value={form.studio}
                                 onChange={(e) => setFormData("studio", e.target.value)}/></>}
                         {form.typeId === 4 && <>
                             <TextField 
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Racord Label"
                                 value={form.recordLabel}
                                 onChange={(e) => setFormData("recordLabel", e.target.value)}/></>}
@@ -146,46 +182,46 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
                     <div className={classes.row}>
                         {form.typeId === 1 && <>
                             <TextField 
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Author"
                                 value={form.author}
                                 onChange={(e) => setFormData("author", e.target.value)}/></>}
                         {form.typeId === 3 && <>
                             <TextField 
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Director"
                                 value={form.director}
                                 onChange={(e) => setFormData("director", e.target.value)}/></>}
                         {form.typeId === 4 && <>
                             <TextField fullWidth
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Artist"
                                 value={form.artist}
                                 onChange={(e) => setFormData("artist", e.target.value)}/></>}
                         {form.typeId === 1 && <>
                             <TextField
                                 type="number"
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Pages"
                                 value={form.pages}
-                                onChange={(e) => setFormData("pages", e.target.value)}/></>}
+                                onChange={(e) => setFormData("pages", Number(e.target.value))}/></>}
                         {form.typeId === 3 && <>
                             <TextField
                                 type="number" 
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Time"
                                 value={form.time}
-                                onChange={(e) => setFormData("time", e.target.value)}/></>}
+                                onChange={(e) => setFormData("time", Number(e.target.value))}/></>}
                     </div>
                     <div className={classes.row}>
                         {(form.typeId === 3 || form.typeId === 4) && <>
                             <TextField
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Audio"
                                 value={form.audio}
                                 onChange={(e) => setFormData("audio", e.target.value)}/>
                             <TextField
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Suport"
                                 value={form.suport}
                                 onChange={(e) => setFormData("suport", e.target.value)}/></>}
@@ -193,18 +229,18 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
                     <div className={classes.row}>
                         {form.typeId === 3 && <>
                             <TextField 
-                                sx={{ m: '1%', minWidth: '49%' }}
+                                sx={{ m: '1%', minWidth: '48%' }}
                                 label="Country"
                                 value={form.country}
                                 onChange={(e) => setFormData("country", e.target.value)}/></>}
                         <TextField fullWidth 
-                            sx={{ m: '1%', minWidth: '49%' }}
+                            sx={{ m: '1%', minWidth: '48%' }}
                             label="Language"
                             value={form.language}
                             onChange={(e) => setFormData("language", e.target.value)}/>
                     </div>
                     <div className={classes.row}>
-                        <FormControl sx={{ m: '1%', minWidth: '49%' }}>
+                        <FormControl fullWidth sx={{ m: '1%', minWidth: '48%' }}>
                             <InputLabel id="categories">Categories</InputLabel>
                             <Select
                                 labelId="categories"
@@ -222,10 +258,14 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
                             sx={{ m: '1%', minWidth: '40%' }}
                             label="Stock"
                             value={form.stock}
-                            onChange={(e) => setFormData("stock", e.target.value)}/>
+                            onChange={(e) => setFormData("stock", Number(e.target.value))}/>
                         <FormControl sx={{ m: '1%', minWidth: '58%' }}>
                             <input id="files" type="file" name="myImage" onChange={(e) => setCover(e.target.files)} />
                         </FormControl>
+                    </div>
+                    <div className={classes.buttons}>
+                        <Button className={classes.cancelButton}>Cancel</Button>
+                        <Button className={classes.saveButton} onClick={() => saveProductData()}>Save product</Button>
                     </div>                           
                 </div>
             </Box>
@@ -235,3 +275,4 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
 }
 
 export default AddProductModal;
+

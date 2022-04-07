@@ -4,7 +4,7 @@ import ApiServices from '../services/apiServices';
 
 function MainPage() {
     const [img, setImg] = useState("");
-    const {uploadImage} = ApiServices();
+    const {uploadFileToStorage} = ApiServices();
     let fileReader: FileReader;
 
     function onImageUpload(file : FileList | null ){
@@ -14,7 +14,7 @@ function MainPage() {
             console.log(file);
             var formdata = new FormData();
             formdata.append("file", file[0]);
-            uploadImage(formdata);
+            uploadFileToStorage(formdata, "ceva");
             fileReader = new FileReader();
             fileReader.onloadend = handleFileRead;
             fileReader.readAsText(file[0]);

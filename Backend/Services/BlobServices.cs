@@ -40,11 +40,10 @@ namespace OnlineLibrary.Services
             return items;
         }
 
-        public async Task UploadBlobAsync(IFormFile file)
+        public async Task UploadBlobAsync(IFormFile file, string name)
         {
             var containerClient = _blobServiceClient.GetBlobContainerClient("covers");
-            var filename = Guid.NewGuid() + ".jpg";
-            var blobClient = containerClient.GetBlobClient(filename);
+            var blobClient = containerClient.GetBlobClient(name);
 
             using (var stream = file.OpenReadStream())
             {

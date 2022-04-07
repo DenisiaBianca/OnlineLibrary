@@ -14,5 +14,13 @@ namespace OnlineLibrary.Entities
         public int Id { get; set; }
         public int ProductId { get; set; }
         public int CategoryId { get; set; }
+
+        [JsonIgnore]
+        [ForeignKey(nameof(ProductId))]
+        public Product Product { get; set; }
+
+        [JsonIgnore]
+        [ForeignKey(nameof(CategoryId))]
+        public Category Category { get; set; }
     }
 }

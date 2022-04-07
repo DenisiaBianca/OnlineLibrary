@@ -1,13 +1,13 @@
 import axios, { AxiosResponse } from 'axios'
-import { IFilter } from '../interfaces/products';
+import { IFilter, ISaveProduct } from '../interfaces/products';
 
 const baseUrl = "https://localhost:44311/api/";
 
 export const ApiServices = () => {
 
-    async function uploadImage(file : FormData){
+    async function uploadFileToStorage(file : FormData | undefined, name : string | undefined){
         return await axios
-            .post(baseUrl + "products/UploadImage", file)
+            .post(baseUrl + "products/UploadImage?name=" + name, file)
             .then((response: any) => {
                 console.log(response);
             })
@@ -38,10 +38,24 @@ export const ApiServices = () => {
             });  
     }
 
+    async function saveProduct(product : ISaveProduct){
+        console.log(product);
+        return await axios
+            .post(baseUrl + "products/SaveProduct", product)
+            .then((response: any) => {
+                return response.data;
+            })
+            .catch((error: any) => {
+                console.log(error);
+            });  
+    }
+
+
     return {
-        uploadImage,
+        uploadFileToStorage,
         getProducts,
-        getCategories
+        getCategories,
+        saveProduct
     };
 }
 

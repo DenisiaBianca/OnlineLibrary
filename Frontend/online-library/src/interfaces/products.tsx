@@ -65,6 +65,27 @@ export interface IProduct {
     categories?: string[];
 }
 
+export interface ISaveProduct {
+    name?: string;
+    typeId?: number;
+    publishHouse?: string;
+    author?: string;
+    publishYear?: number;
+    pages?: number;
+    language?: string;
+    stock?: number;
+    artist?: string;
+    recordLabel?: string;
+    audio?: string;
+    suport?: string;
+    director?: string;
+    studio?: string;
+    country?: string;
+    time?: number;
+    categories?: number[];
+    cover?: string;
+}
+
 export interface IFilter {
     Books : boolean;
     Magazines : boolean;
@@ -78,6 +99,11 @@ export interface ICategory {
     productTypeId : number;
     name: string;
     id: number;
+}
+
+export interface IProductWithCategoriesModel {
+    product: IProduct,
+    categories: string[]
 }
 
 

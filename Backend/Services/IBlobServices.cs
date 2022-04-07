@@ -9,6 +9,6 @@ namespace OnlineLibrary.Services
     {
         public Task<BlobInfo> GetBlobAsync(string name);
         public Task<IEnumerable<string>> GetBlobNameAsync();
-        public Task UploadBlobAsync(IFormFile file);
+        public Task UploadBlobAsync(IFormFile file, string name);
     }
 }

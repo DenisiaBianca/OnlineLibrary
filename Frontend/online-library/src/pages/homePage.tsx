@@ -1,7 +1,7 @@
 import { Button, Checkbox, FormControlLabel, makeStyles } from '@material-ui/core'
 import React, { useEffect, useState } from 'react'
 import headerImage from '../images/Picture10.png'
-import { IFilter, IProduct } from '../interfaces/products'
+import { IFilter, IProduct, IProductWithCategoriesModel } from '../interfaces/products'
 import Filters from '../components/filters'
 import ApiServices from '../services/apiServices';
 import MainPage from './mainPage'
@@ -70,13 +70,12 @@ export default function HomePage() {
     const classes = useStyle();
     const [openAddProductModal, setOpenAddProductModal] = useState(false);
     const [filters, setFilters] = useState<IFilter>({Books: true, Magazines: true, CD: true, DVD: true});
-    const [products, setProducts] = useState<IProduct[]>([]);
+    const [products, setProducts] = useState<IProductWithCategoriesModel[]>([]);
     const [selectedMenuItem, setSelectedMenuItem] = useState<number>(1);
     const {getProducts} = ApiServices();
 
     const getProductsData = async(filter: IFilter) => {
-        const response = await getProducts(filter);
-        console.log(response);
+        const response: IProductWithCategoriesModel[] = await getProducts(filter);
         setProducts(response);
     }
 

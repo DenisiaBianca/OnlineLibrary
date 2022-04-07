@@ -29,7 +29,7 @@ namespace OnlineLibrary
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddSingleton<IConfiguration>(Configuration);
             services.AddSingleton(x => new BlobServiceClient(Configuration.GetValue<string>("AzureStorageConnectionString")));
             services.AddScoped(typeof(IBlobServices), typeof(BlobServices));
 
