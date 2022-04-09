@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using OnlineLibrary.DBContext;
@@ -29,13 +31,6 @@ namespace OnlineLibrary.Controllers
             _configuration = configuration;
         }   
 
-        [HttpGet]
-        public IEnumerable<string> GetBlobs()
-        {
-            return _blobServices.GetBlobNameAsync().Result;
-        }
-
-
         [HttpPost]
         public IActionResult GetProducts([FromBody] FilterModel filter)
         {
@@ -53,18 +48,50 @@ namespace OnlineLibrary.Controllers
 
             var list = new List<ProductWithCategoriesModel>();
 
-            foreach(var pro in products)
+            var userId = Request.HttpContext.User.Identity.Name;
+            var clientId = new Guid();
+            if(userId != null)
             {
-                var categories = _dBContext.ProductsCategories.Where(pc => pc.ProductId == pro.Id).Select(x => x.Category.Name).ToList();
-                list.Add( new ProductWithCategoriesModel { Product = pro, Categories = categories});
+                var client = _dBContext.Client.Where(c => c.UserId == userId).FirstOrDefault();
+                if (client != null) clientId = client.Id;
+            }
+
+            foreach (var pro in products)
+            {
+                var categories = _dBContext.ProductsCategories.Where(pc => pc.ProductId == pro.Id).Select(x => new Category{ Name = x.Category.Name, Id = x.Id}).ToList();
+                var borrowsNo = _dBContext.Borrows.Where(b => b.ReturnDate == null && b.ProductId == pro.Id).ToList().Count();
+                pro.Stock = pro.Stock - borrowsNo;
+                var status = 0;
+
+                if(userId != null && clientId != Guid.Empty)
+                {
+                    var userBorrow = _dBContext.Borrows.Where(b => b.ClientId == clientId && b.ProductId == pro.Id).OrderByDescending(b => b.ReservedDate).FirstOrDefault();
+
+                    if (userBorrow != null)
+                    {
+                        if (userBorrow.ReturnDate != null && userBorrow.BorrowDate != null && userBorrow.ReservedDate != null) status = 3; //borrow again
+                        if (userBorrow.ReturnDate == null && userBorrow.BorrowDate != null && userBorrow.ReservedDate != null) status = 2; //borrowed
+                        if (userBorrow.ReturnDate == null && userBorrow.BorrowDate == null && userBorrow.ReservedDate != null) status = 1; //just reserved         
+                    }
+                }
+
+                list.Add( new ProductWithCategoriesModel{ Product = pro, Categories = categories, Status = status});
             }
 
             return Ok(list);
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public IActionResult SaveProduct([FromBody]SaveProductModel product)
         {
+            var userId = Request.HttpContext.User.Identity.Name;
+            var isAdmin = _dBContext.Users.Find(userId).IsAdmin;
+            if(isAdmin == false)
+            {
+                return StatusCode(StatusCodes.Status401Unauthorized, "You do not have access!");
+            }
+
             var p = new Product
             {
                 Name = product.Name,
@@ -86,12 +113,14 @@ namespace OnlineLibrary.Controllers
                 Time = product.Time
             };
 
-            var r = _dBContext.Products.Add(p);
+            var newProduct = _dBContext.Products.Add(p);
+
+            _dBContext.SaveChanges();
 
             var productCategories = new List<ProductsCategories>();
             foreach (var c in product.Categories)
             {
-                productCategories.Add(new ProductsCategories { CategoryId = c, Product = p });
+                productCategories.Add(new ProductsCategories { CategoryId = c, ProductId = newProduct.Entity.Id });
             }
 
             _dBContext.ProductsCategories.AddRange(productCategories);
@@ -102,6 +131,7 @@ namespace OnlineLibrary.Controllers
         }
 
         [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<IActionResult> UploadImage([FromForm]IFormFile file, string name)
         {
             await _blobServices.UploadBlobAsync(file, name);
@@ -115,9 +145,89 @@ namespace OnlineLibrary.Controllers
             return Ok(categories);
         }
 
-        private void UploadCoverToStorage(IFormFile file, string name)
+        [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult ReserveProduct(int productId)
         {
-            _blobServices.UploadBlobAsync(file, name);
+            var userId = Request.HttpContext.User.Identity.Name;
+            var clientId = _dBContext.Client.Where(c => c.UserId == userId).FirstOrDefault().Id;
+
+            var borrow = new Borrows
+            {
+                ClientId = clientId,
+                ProductId = productId,
+                ReservedDate = DateTime.Now
+            };
+
+            _dBContext.Add(borrow);
+            _dBContext.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpGet]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult GetAllBorrows()
+        {
+            var borrows = _dBContext.Borrows.Select(b => new BorrowModel{
+                    Id = b.Id,
+                    ProductName = b.Product.Name, 
+                    ClientEmail = b.Client.Email,
+                    ReservedDate = b.ReservedDate,
+                    BorrowDate = b.BorrowDate,
+                    ReturnDate = b.ReturnDate
+            }).ToList();
+
+            return Ok(borrows);
+        }
+
+        [HttpPost]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult UpdateBorrow(int id, string type)
+        {
+            var borrow = _dBContext.Borrows.Find(id);
+
+            if(type == "borrow")
+            {
+                borrow.BorrowDate = DateTime.Now;
+            }
+            else if(type == "return")
+            {
+                borrow.ReturnDate = DateTime.Now;
+            }
+
+            _dBContext.Borrows.Update(borrow);
+            _dBContext.SaveChanges();
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult DeleteProduct(int id)
+        {
+            var product = _dBContext.Products.Find(id);
+            if(product != null)
+            {
+                _dBContext.Products.Remove(product);
+                _dBContext.SaveChanges();
+            }
+
+            return Ok();
+        }
+
+        [HttpPut]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public IActionResult updateProductStock(int id, int stock)
+        {
+            var product = _dBContext.Products.Find(id);
+            if (product != null)
+            {
+                product.Stock = stock;
+                _dBContext.SaveChanges();
+            }
+
+            return Ok();
         }
     }
 }

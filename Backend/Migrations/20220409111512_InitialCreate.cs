@@ -48,21 +48,6 @@ namespace OnlineLibrary.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductsCategories",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Deleted = table.Column<bool>(nullable: false),
-                    ProductId = table.Column<int>(nullable: false),
-                    CategoryId = table.Column<int>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProductsCategories", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ProductTypes",
                 columns: table => new
                 {
@@ -213,7 +198,7 @@ namespace OnlineLibrary.Migrations
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<int>(nullable: false),
+                    Name = table.Column<string>(nullable: true),
                     ProductTypeId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -239,7 +224,7 @@ namespace OnlineLibrary.Migrations
                     PublishHouse = table.Column<string>(nullable: true),
                     Author = table.Column<string>(nullable: true),
                     PublishYear = table.Column<int>(nullable: false),
-                    Pages = table.Column<int>(nullable: false),
+                    Pages = table.Column<int>(nullable: true),
                     Language = table.Column<string>(nullable: true),
                     Cover = table.Column<string>(nullable: true),
                     Stock = table.Column<int>(nullable: false),
@@ -250,7 +235,7 @@ namespace OnlineLibrary.Migrations
                     Director = table.Column<string>(nullable: true),
                     Studio = table.Column<string>(nullable: true),
                     Country = table.Column<string>(nullable: true),
-                    Time = table.Column<int>(nullable: false)
+                    Time = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -264,6 +249,27 @@ namespace OnlineLibrary.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ProductsCategories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Deleted = table.Column<bool>(nullable: false),
+                    ProductId = table.Column<int>(nullable: false),
+                    CategoryId = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ProductsCategories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ProductsCategories_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Borrows",
                 columns: table => new
                 {
@@ -272,7 +278,6 @@ namespace OnlineLibrary.Migrations
                     Deleted = table.Column<bool>(nullable: false),
                     ClientId = table.Column<Guid>(nullable: false),
                     ProductId = table.Column<int>(nullable: false),
-                    ProductTypeId = table.Column<int>(nullable: false),
                     BorrowDate = table.Column<DateTime>(nullable: false),
                     ReturnDate = table.Column<DateTime>(nullable: false),
                     ReservedDate = table.Column<DateTime>(nullable: false)
@@ -287,9 +292,9 @@ namespace OnlineLibrary.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Borrows_ProductTypes_ProductTypeId",
-                        column: x => x.ProductTypeId,
-                        principalTable: "ProductTypes",
+                        name: "FK_Borrows_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -339,9 +344,9 @@ namespace OnlineLibrary.Migrations
                 column: "ClientId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Borrows_ProductTypeId",
+                name: "IX_Borrows_ProductId",
                 table: "Borrows",
-                column: "ProductTypeId");
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Categories_ProductTypeId",
@@ -357,6 +362,11 @@ namespace OnlineLibrary.Migrations
                 name: "IX_Products_TypeId",
                 table: "Products",
                 column: "TypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductsCategories_CategoryId",
+                table: "ProductsCategories",
+                column: "CategoryId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -380,12 +390,6 @@ namespace OnlineLibrary.Migrations
                 name: "Borrows");
 
             migrationBuilder.DropTable(
-                name: "Categories");
-
-            migrationBuilder.DropTable(
-                name: "Products");
-
-            migrationBuilder.DropTable(
                 name: "ProductsCategories");
 
             migrationBuilder.DropTable(
@@ -395,10 +399,16 @@ namespace OnlineLibrary.Migrations
                 name: "Client");
 
             migrationBuilder.DropTable(
-                name: "ProductTypes");
+                name: "Products");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.DropTable(
+                name: "ProductTypes");
         }
     }
 }

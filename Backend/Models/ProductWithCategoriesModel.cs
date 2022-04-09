@@ -9,6 +9,7 @@ namespace OnlineLibrary.Models
     public class ProductWithCategoriesModel
     {
         public Product Product { get; set; }
-        public List<string> Categories { get; set; }
+        public List<Category> Categories { get; set; }
+        public int Status { get; set; }
     }
 }

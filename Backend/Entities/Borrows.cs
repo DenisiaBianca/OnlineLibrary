@@ -14,9 +14,8 @@ namespace OnlineLibrary.Entities
         public int Id { get; set; }
         public Guid ClientId { get; set; }
         public int ProductId { get; set; }
-        public int ProductTypeId { get; set; }
-        public DateTime BorrowDate { get; set; }
-        public DateTime ReturnDate { get; set; }
+        public DateTime? BorrowDate { get; set; }
+        public DateTime? ReturnDate { get; set; }
         public DateTime ReservedDate {get;set;}
 
         [JsonIgnore]
@@ -24,8 +23,8 @@ namespace OnlineLibrary.Entities
         public Client Client { get; set; }
 
         [JsonIgnore]
-        [ForeignKey(nameof(ProductTypeId))]
-        public ProductTypes ProductTypes { get; set; }
+        [ForeignKey(nameof(ProductId))]
+        public Product Product { get; set; }
 
     }
 }

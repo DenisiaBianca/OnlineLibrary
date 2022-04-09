@@ -10,8 +10,8 @@ using OnlineLibrary.DBContext;
 namespace OnlineLibrary.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    [Migration("20220406222348_Update2")]
-    partial class Update2
+    [Migration("20220409114511_InitialCreate2")]
+    partial class InitialCreate2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -159,7 +159,7 @@ namespace OnlineLibrary.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime>("BorrowDate")
+                    b.Property<DateTime?>("BorrowDate")
                         .HasColumnType("datetime2");
 
                     b.Property<Guid>("ClientId")
@@ -171,20 +171,17 @@ namespace OnlineLibrary.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductTypeId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("ReservedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("ReturnDate")
+                    b.Property<DateTime?>("ReturnDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("ProductTypeId");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("Borrows");
                 });
@@ -350,6 +347,8 @@ namespace OnlineLibrary.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.ToTable("ProductsCategories");
                 });
 
@@ -480,9 +479,9 @@ namespace OnlineLibrary.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineLibrary.Entities.ProductTypes", "ProductTypes")
+                    b.HasOne("OnlineLibrary.Entities.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("ProductTypeId")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -508,6 +507,15 @@ namespace OnlineLibrary.Migrations
                     b.HasOne("OnlineLibrary.Entities.ProductTypes", "ProductTypes")
                         .WithMany()
                         .HasForeignKey("TypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("OnlineLibrary.Entities.ProductsCategories", b =>
+                {
+                    b.HasOne("OnlineLibrary.Entities.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

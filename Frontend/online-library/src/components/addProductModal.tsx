@@ -3,12 +3,15 @@ import { Button, makeStyles } from '@material-ui/core';
 import { YearPicker } from '@mui/lab';
 import { FormControl, InputLabel, MenuItem, Select, Box, Modal, TextField } from '@mui/material';
 import React, { useEffect, useState } from 'react'
-import { ICategory, IProduct, ISaveProduct } from '../interfaces/products';
+import { ICategory, IProduct, IProductWithCategoriesModel, ISaveProduct } from '../interfaces/products';
 import ApiServices from '../services/apiServices';
+import { generateGUID, wait } from '../services/functions';
+import { ErrorNotification } from './errorNotification';
 
 interface IProps {
     open: boolean;
     setOpen: any;
+    refreshList: any;
 }
 
 const useStyle = makeStyles(() => ({
@@ -51,13 +54,16 @@ const useStyle = makeStyles(() => ({
     }
 }));
 
-const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
+const AddProductModal : React.FC<IProps> = ({open, setOpen, refreshList}) => {
     const classes = useStyle();
     const [form, setForm] = useState<ISaveProduct>({});
     const [categories, setCategories] = useState<ICategory[]>([]);
-    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [allcategories, setAllCategories] = useState<ICategory[]>([]);
+    const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
     const [file, setFile] = useState<FormData | undefined>();
     const {getCategories, saveProduct, uploadFileToStorage} = ApiServices();
+    const [loading, setLoading] = useState(false);
+    const [tryToSave, setTryToSave] = useState(false);
     const years = [];
 
     for(var i = 2022; i >= 1900; i--)
@@ -65,8 +71,12 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
         years.push(i);
     }
 
-    function setFormData(field: string, data: number | string | boolean){
+    function setFormData(field: string, data: number | string | boolean | undefined){
         setForm({...form, [field] : data});
+        if(field == "typeId"){
+            setCategories(allcategories.filter(c => c.productTypeId == data));
+            setSelectedCategories([]);
+        }
     }
 
     function setCover(files : FileList | null){
@@ -80,18 +90,9 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
         }
     }
 
-    function generateGUID() {
-        return 'xxxxxxxxxxxxxxxxxxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-            var r = (Math.random() * 16) | 0,
-              v = c == 'x' ? r : (r & 0x3) | 0x8;
-            return v.toString(16);
-          });
-    }
-
     const getCategoriesData = async() => {
         const result = await getCategories();
-        setCategories(result);
-        console.log(result);
+        setAllCategories(result);
     }
 
     const handleChange = (event: { target: { value: any; }; }) => {
@@ -100,26 +101,52 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
         setForm({...form, categories : value});
     };
 
-    function saveProductData()
+    async function saveProductData()
     {
-        console.log(form);
-        saveProduct(form);
-        uploadFileToStorage(file, form.cover);
+        setTryToSave(true);
+        if(verifyFields())
+        {
+            setOpen(false);
+            setLoading(true);
+            await saveProduct(form);
+            await uploadFileToStorage(file, form.cover);
+            refreshList(generateGUID());
+            setLoading(false);
+        }
+
+        setTimeout(() => setTryToSave(false), 4000);
     }
+
     
     useEffect(() =>
     {
         getCategoriesData();
     },[])
 
+    const verifyFields = () => {
+        if(form.typeId == 1 && form.name != null && form.publishYear != null && form.publishHouse != null && form.language != null && form.stock != null && form.cover != null && selectedCategories != null){
+            return true           
+        }
+        if(form.typeId == 3 && form.name != null && form.publishYear != null && form.studio != null && form.director != null && form.time != null && form.audio != null && form.suport != null && form.country != null && form.language != null && form.stock != null && form.cover != null && selectedCategories != null){
+            return true           
+        }
+        if(form.typeId == 2 && form.name != null && form.publishYear != null && form.publishHouse != null && form.language != null && form.stock != null && form.cover != null && selectedCategories != null){
+            return true           
+        }
+        if(form.typeId == 4 && form.name != null && form.publishYear != null && form.recordLabel != null && form.artist != null && form.audio != null && form.suport != null && form.language != null && form.stock != null && form.cover != null && selectedCategories != null){
+            return true           
+        }
+        
+        return false;
+    }
 
   return (
     <>
+        {loading ? <div className="loader"></div> : <></>}
+        {tryToSave && !verifyFields() && <ErrorNotification message="You mush complete all the fields!"/>}
         <Modal
             open={open}
             onClose={() => setOpen(false)}
-            aria-labelledby="modal-modal-title"
-            aria-describedby="modal-modal-description"
         >
             <Box className={classes.box}>
                 <h2>Add new Product</h2>
@@ -143,6 +170,7 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
                         </FormControl>
                         <TextField 
                             sx={{ m: '1%', minWidth: '66%' }}
+                            required
                             id="name"
                             label="Name"
                             value={form.name}
@@ -264,7 +292,7 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen}) => {
                         </FormControl>
                     </div>
                     <div className={classes.buttons}>
-                        <Button className={classes.cancelButton}>Cancel</Button>
+                        <Button className={classes.cancelButton} onClick={() => setOpen(false)}>Cancel</Button>
                         <Button className={classes.saveButton} onClick={() => saveProductData()}>Save product</Button>
                     </div>                           
                 </div>

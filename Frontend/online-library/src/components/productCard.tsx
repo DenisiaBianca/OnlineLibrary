@@ -1,9 +1,15 @@
 import { Button, makeStyles } from '@material-ui/core';
-import React from 'react'
+import React, { useState } from 'react'
 import { IProduct, IProductWithCategoriesModel } from '../interfaces/products';
+import apiServices from '../services/apiServices';
+import { generateGUID } from '../services/functions';
+import AddProductModal from './addProductModal';
+import BorrowModal from './borrowModal';
+import EditProductModal from './editProductModal';
 
 interface IProps {
     product: IProductWithCategoriesModel;
+    refreshList: any;
 }
 
 const useStyle = makeStyles(() => ({
@@ -11,9 +17,9 @@ const useStyle = makeStyles(() => ({
         display: 'flex',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        padding: '0px 15px',
+        padding: '15px 15px',
         alignItems: 'center',
-        height: '250px',
+        height: '220px',
         width: '70%',
         margin: '20px',
         boxShadow: 'rgba(0, 0, 0, 0.2) 0px 3px 8px',
@@ -23,31 +29,62 @@ const useStyle = makeStyles(() => ({
     },
     cover: {
         height: '200px',
+        width: '140px',
+        objectFit: 'cover',
+        objectPosition: 'center',
+        marginRight: '30px'
     },
     details: {
        width: "60%",
        height: '100%',
        textAlign: 'left',
-       marginTop: '15px' 
+       marginTop: '15px',
+       fontSize: '13px' 
     },
     details2: {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        height: '180px',
+        height: '100%',
         width: "100px",
         alignItems: 'end',
         textAlign: 'right'
     },
     borrowButton: {
         backgroundColor: '#6b705c',
-        width: '180px',
-        color: 'white'
+        width: '160px',
+        color: 'white',
+        height: '25px'
+    },
+    editButton:{
+        backgroundColor: '#f4a261',
+        width: '160px',
+        color: 'white',
+        height: '25px'
+    },
+    deleteButton:{
+        backgroundColor: '#bb3e03',
+        width: '160px',
+        color: 'white',
+        marginTop: '10px',
+        height: '25px'
+    },
+    text: {
+        color: '#bb3e03',
+        fontSize: '18px'
     }
 }))
 
-const ProductCard: React.FC<IProps> = ({product}) => {
+const ProductCard: React.FC<IProps> = ({product, refreshList}) => {
     const classes = useStyle();
+    const [borrowModal, openBorrowModal] = useState(false);
+    const [editOpenModal, setEditOpenModal] = useState(false);
+    const {deleteProduct} = apiServices();
+
+    async function deleteProductData(){
+        await deleteProduct(product.product.id);
+        refreshList(generateGUID());
+    }
     
   return (
     <div className={classes.card}>
@@ -57,7 +94,7 @@ const ProductCard: React.FC<IProps> = ({product}) => {
             
             <span>Language: </span> {product.product.language}<br/>
             <span>Publication Year: </span> {product.product.publishYear}<br/>
-            <span>Categories: </span> {product.categories != undefined && product.categories.map((c) => <>{c}, </>)}<br/>
+            <span>Categories: </span> {product.categories != undefined && product.categories.map((c) => <>{c.name}, </>)}<br/>
 
             {/* Book details */}
             {product.product.typeId === 1 && 
@@ -88,9 +125,24 @@ const ProductCard: React.FC<IProps> = ({product}) => {
         </div>
         <div className={classes.details2}>
             <span>Stock: {product.product.stock}</span>
-            <br/>
-            <Button className={classes.borrowButton}>BORROW</Button> 
+            {
+                localStorage.getItem("isAdmin") == "false" ?              
+                    (product.status == 0 && <Button className={classes.borrowButton} onClick={() => openBorrowModal(true)}>BORROW</Button> ) ||
+                    (product.status == 1 && <div className={classes.text} >RESERVED</div> ) ||
+                    (product.status == 2 && <div className={classes.text} >BORROWED</div> ) ||
+                    (product.status == 3 && <Button className={classes.borrowButton} onClick={() => openBorrowModal(true)}>BORROW AGAIN</Button> )
+                : 
+                (
+                    localStorage.getItem("isAdmin") == "true" ?
+                    <div>
+                        <Button className={classes.editButton} onClick= {() => setEditOpenModal(true)}>EDIT</Button>
+                        <Button className={classes.deleteButton} onClick={() => deleteProductData()}>DELETE</Button>
+                    </div> : <></>
+                ) 
+            } 
         </div>
+        <BorrowModal refreshList={refreshList} product={product.product} open={borrowModal} setOpen={openBorrowModal}/>
+        <EditProductModal refreshList={refreshList} product={product.product} open={editOpenModal} setOpen={setEditOpenModal}/>
     </div>
   )
 }

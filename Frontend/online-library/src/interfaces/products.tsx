@@ -82,7 +82,7 @@ export interface ISaveProduct {
     studio?: string;
     country?: string;
     time?: number;
-    categories?: number[];
+    categories?: string[];
     cover?: string;
 }
 
@@ -103,7 +103,17 @@ export interface ICategory {
 
 export interface IProductWithCategoriesModel {
     product: IProduct,
-    categories: string[]
+    categories: ICategory[],
+    status: number
+}
+
+export interface IBorrow {
+    id: number;
+    productName: string;
+    clientEmail: string;
+    reservedDate: Date;
+    borrowDate : Date;
+    returnDate: Date;
 }
 
 

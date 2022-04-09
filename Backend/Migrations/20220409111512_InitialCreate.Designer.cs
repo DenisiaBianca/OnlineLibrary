@@ -10,8 +10,8 @@ using OnlineLibrary.DBContext;
 namespace OnlineLibrary.Migrations
 {
     [DbContext(typeof(DataBaseContext))]
-    [Migration("20220407214756_Migration3")]
-    partial class Migration3
+    [Migration("20220409111512_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -171,9 +171,6 @@ namespace OnlineLibrary.Migrations
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
-                    b.Property<int>("ProductTypeId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("ReservedDate")
                         .HasColumnType("datetime2");
 
@@ -184,7 +181,7 @@ namespace OnlineLibrary.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.HasIndex("ProductTypeId");
+                    b.HasIndex("ProductId");
 
                     b.ToTable("Borrows");
                 });
@@ -352,8 +349,6 @@ namespace OnlineLibrary.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("ProductId");
-
                     b.ToTable("ProductsCategories");
                 });
 
@@ -484,9 +479,9 @@ namespace OnlineLibrary.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("OnlineLibrary.Entities.ProductTypes", "ProductTypes")
+                    b.HasOne("OnlineLibrary.Entities.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("ProductTypeId")
+                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -521,12 +516,6 @@ namespace OnlineLibrary.Migrations
                     b.HasOne("OnlineLibrary.Entities.Category", "Category")
                         .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("OnlineLibrary.Entities.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
