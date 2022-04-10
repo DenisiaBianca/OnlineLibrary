@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { IProduct } from '../interfaces/products';
 import ApiServices from '../services/apiServices';
 import { generateGUID } from '../services/functions';
+import TriggerEmailService from '../services/triggerEmailService';
 
 interface IProps {
     open: boolean;
@@ -51,12 +52,14 @@ const BorrowModal: React.FC<IProps> = ({setOpen, open, product, refreshList}) =>
     const classes = useStyle();
     const [loading, setLoading] = useState(false);
     const {reserveProduct} = ApiServices();
+    const {sendReservedProductEmail} = TriggerEmailService();
 
     async function borrowProduct()
     {   
         setOpen(false);
         setLoading(true);
         await reserveProduct(product.id);
+        await sendReservedProductEmail(localStorage.getItem("userEmail"), product.name);
         refreshList(generateGUID());
         setLoading(false);
     }

@@ -78,7 +78,7 @@ export const Borrows = () => {
                     <TableCell>{b.borrowDate != null ? new Date(b.borrowDate).toDateString() : <></>}</TableCell>
                     <TableCell>{b.returnDate != null ? new Date(b.returnDate).toDateString() : <></>}</TableCell>
                     <TableCell align="center"><Button disabled={b.borrowDate != null} className={classes.borrowButton} onClick={() => updateBorrowData(b.id, "borrow")}>borrow</Button></TableCell>
-                    <TableCell align="center" ><Button disabled={b.returnDate != null} className={classes.returnButton} onClick={() => updateBorrowData(b.id, "return")}>return</Button></TableCell>
+                    <TableCell align="center" ><Button disabled={b.returnDate != null || b.borrowDate == null} className={classes.returnButton} onClick={() => updateBorrowData(b.id, "return")}>return</Button></TableCell>
                     </TableRow>
                 ))}
                 </TableBody>

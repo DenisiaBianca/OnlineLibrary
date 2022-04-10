@@ -111,10 +111,15 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen, refreshList}) => {
             await saveProduct(form);
             await uploadFileToStorage(file, form.cover);
             refreshList(generateGUID());
+            const emptyForm : ISaveProduct = {}
+
+            setTimeout(() => {
+                setTryToSave(false);
+                setForm(emptyForm);
+                setSelectedCategories([]);
+            }, 4000);
             setLoading(false);
         }
-
-        setTimeout(() => setTryToSave(false), 4000);
     }
 
     
@@ -143,7 +148,7 @@ const AddProductModal : React.FC<IProps> = ({open, setOpen, refreshList}) => {
   return (
     <>
         {loading ? <div className="loader"></div> : <></>}
-        {tryToSave && !verifyFields() && <ErrorNotification message="You mush complete all the fields!"/>}
+        {tryToSave && (!verifyFields()) && <ErrorNotification message="You mush complete all the fields!"/>}
         <Modal
             open={open}
             onClose={() => setOpen(false)}

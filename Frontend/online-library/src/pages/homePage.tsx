@@ -122,8 +122,7 @@ export default function HomePage() {
             <div className={classes.menuList}>
                 <Button onClick={() => setSelectedMenuItem(1)}><b>PRODUCTS</b></Button>
                 {
-                    localStorage.getItem("isAdmin") == "true" ? <Button onClick={() => setSelectedMenuItem(2)}><b>BORROWS</b></Button> : 
-                    (localStorage.getItem("isAdmin") == "false" ? <Button onClick={() => setSelectedMenuItem(3)}><b>HISTORY</b></Button> : <></>)
+                    localStorage.getItem("isAdmin") == "true" ? <Button onClick={() => setSelectedMenuItem(2)}><b>BORROWS</b></Button> : <></>
                 }
             </div>
             {
@@ -144,7 +143,7 @@ export default function HomePage() {
                     {
                         localStorage.getItem("isAdmin") == "true" ? <Button className={classes.addProductButton} onClick={() => setOpenAddProductModal(true)}><b>+ Add New Product</b></Button> : <></>
                     }
-                    {products.length > 0 && products.map((p) =>
+                    {products != undefined && products.map((p) =>
                         <ProductCard refreshList={setRefreshList} product={p}/>
                     )}
                 </div>
